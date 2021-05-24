@@ -11,11 +11,10 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <unistd.h>
+#include <time.h>
 
-#include "fat.h"
-#include "ext.h"
-#include "utils.h"
-
+#define DIRECTORY "Files/"
 
 //PRINT DEFINES
 #define EOL "\n"
@@ -29,5 +28,7 @@
 #define ERROR_ARGS "Error processing arguments.\n\n"
 #define FILESYSTEM "\n------ Filesystem Information ------\n\nFilesystem: %s\n\n"
 #define UNKNOWN_FILESYSTEM "File system is neither EXT2 nor FAT16\n\n"
+
+
 
 #endif

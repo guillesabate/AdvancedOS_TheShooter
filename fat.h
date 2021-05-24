@@ -10,11 +10,15 @@
 #define _FAT_H_
 
 #include "libraries.h"
+#include "utils.h"
+
 
 #define FAT16_TXT "FAT16"
 #define FAT16_PRINT "System Name: %s\nSize: %d\nSectors per Cluster: %d\nReserved Sectors: %d\nNumber of FATs: %d\nMaxRootEntries: %d\nSectors per FAT: %d\nLabel: %s\n\n"
 
-
+// Page 10
+#define FAT_FILESYSTYPE_SIZE 8
+#define FAT_FILESYSTYPE_OFFSET 54
 
 // Page 8
 #define FAT_OEMNAME_SIZE 8
@@ -35,8 +39,6 @@
 #define FAT_FATZS16_OFFSET 22
 
 // Page 10
-#define FAT_FILESYSTYPE_SIZE 8
-#define FAT_FILESYSTYPE_OFFSET 54
 #define FAT_VOLLAB_SIZE 11
 #define FAT_VOLLAB_OFFSET 43
 
