@@ -27,7 +27,7 @@
 
 #define ERROR_CONFIG "Error opening configuration file.\n\n"
 #define ERROR_ARGS "Error processing arguments.\n\n"
-#define FILESYSTEM "------ Filesystem Information ------\n\nFilesystem: %s\n\n"
+#define FILESYSTEM "\n------ Filesystem Information ------\n\nFilesystem: %s\n\n"
 #define UNKNOWN_FILESYSTEM "File system is neither EXT2 nor FAT16\n\n"
 
 #endif

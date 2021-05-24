@@ -5,7 +5,7 @@
 #include "utils.h"
 
 
-char getExtension(int filesystemfd){
+int getExtension(int filesystemfd){
     char * buff = malloc (FAT_FILESYSTYPE_SIZE);
     int int_buff = 0;
 
@@ -15,7 +15,7 @@ char getExtension(int filesystemfd){
     buff[5] = '\0';
     if(strncmp(buff, FAT16_TXT, sizeof(FAT16_TXT)) == 0){
         free (buff);
-        return 'f';
+        return T_FAT16;
     }
 
     // Looking for EXT2 sysfiletype
@@ -25,8 +25,8 @@ char getExtension(int filesystemfd){
 
     if (int_buff == EXT_FILESYSTYPE_VALUE){
         free (buff);
-        return 'e';
+        return T_EXT2;
     }
     free (buff);
-    return 'x';
+    return T_WRONG;
 }

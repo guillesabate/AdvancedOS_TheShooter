@@ -31,18 +31,16 @@ int main(int argc, char const *argv[]){
 
     //Open file
     if((fd = open(filesystem, O_RDWR))< 0){
-        printf("%s\n", filesystem);
-        printf("%d\n",errno);
         printf(NO_FILE);
+        exit(EXIT_FAILURE);
     }
 
     switch(getExtension(fd)){
-        case 'f':
-            printf(FILESYSTEM, FAT16_TXT);
-            //readFatInfo(fd);
+        case T_FAT16:
+            readFatInfo(fd);
             break;
 
-        case 'e':
+        case T_EXT2:
             printf(FILESYSTEM, EXT2_TXT);
             //readExtInfo(fd);
             break;
@@ -51,6 +49,8 @@ int main(int argc, char const *argv[]){
             printf(UNKNOWN_FILESYSTEM);
             break;
     }
+
+    //Free dynamic memory
     free (filesystem);
     free(operation);
 }

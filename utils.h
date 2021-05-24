@@ -13,8 +13,11 @@
 #include "fat.h"
 #include "ext.h"
 
+#define T_FAT16 16
+#define T_EXT2 2
+#define T_WRONG 0
 #define DIRECTORY "Files/"
 
-char getExtension (int fylesistemfd);
+int getExtension (int fylesistemfd);
 
 #endif
