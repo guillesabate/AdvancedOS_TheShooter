@@ -4,6 +4,10 @@
 
 //MODULES
 #include "libraries.h"
+#include "utils.h"
+#include "ext.h"
+#include "fat.h"
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -42,13 +46,15 @@ int main(int argc, char const *argv[]){
 
         case T_EXT2:
             printf(FILESYSTEM, EXT2_TXT);
-            //readExtInfo(fd);
+            readExtInfo(fd);
             break;
 
         default:
             printf(UNKNOWN_FILESYSTEM);
             break;
     }
+
+    close(fd);
 
     //Free dynamic memory
     free (filesystem);

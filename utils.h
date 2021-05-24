@@ -20,4 +20,6 @@
 
 int getExtension (int fylesistemfd);
 
+char* convertDate (time_t time);
+
 #endif

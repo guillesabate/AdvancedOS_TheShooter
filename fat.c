@@ -46,4 +46,5 @@ fatData readFatInfo(int fd){
 void printFatInfo(fatData fat){
     printf(FILESYSTEM, FAT16_TXT);
     printf(FAT16_PRINT, fat.sysname, fat.size, fat.sectors_cluster, fat.sectors_reserved, fat.num_fat, fat.max_root_entries, fat.sectors_fat, fat.label);
+    return;
 }

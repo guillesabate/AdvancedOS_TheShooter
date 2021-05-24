@@ -30,3 +30,35 @@ int getExtension(int filesystemfd){
     free (buff);
     return T_WRONG;
 }
+
+
+
+char* convertDate (time_t time){
+    char* conversion = (char*) malloc (32 * sizeof(char));
+    char* conv1 = (char*) malloc (32 * sizeof(char));
+    char* conv2 = (char*) malloc (32 * sizeof(char));
+    char* conv3 = (char*) malloc (32 * sizeof(char));
+
+    struct tm lt;
+    lt = *localtime(&time);
+    if(strftime(conversion, sizeof(conversion), "%a %b", &lt) == 0){
+        printf("Conversion ERRROR\n");
+    }
+    if(strftime(conv1, sizeof(conv1), " %d %H:", &lt) == 0){
+        printf("Conversion ERRROR\n");
+    }
+    if(strftime(conv2, sizeof(conv2), "%M:%S", &lt) == 0){
+        printf("Conversion ERRROR\n");
+    }
+    if(strftime(conv3, sizeof(conv2), " %Y", &lt) == 0){
+        printf("Conversion ERRROR\n");
+    }
+
+    strcat(conversion,conv1);
+    strcat(conversion,conv2);
+    strcat(conversion,conv3);
+    free(conv1);
+    free(conv2);
+    free(conv3);
+    return conversion;
+}
