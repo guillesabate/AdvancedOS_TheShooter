@@ -31,8 +31,6 @@ int getExtension(int filesystemfd){
     return T_WRONG;
 }
 
-
-
 char* convertDate (time_t time){
     char* conversion = (char*) malloc (32 * sizeof(char));
     char* conv1 = (char*) malloc (32 * sizeof(char));
@@ -61,4 +59,82 @@ char* convertDate (time_t time){
     free(conv2);
     free(conv3);
     return conversion;
+}
+
+int readFileInfo(int fd){
+    switch(getExtension(fd)){
+        case T_FAT16:
+            readFatInfo(fd);
+            break;
+        case T_EXT2:
+            readExtInfo(fd);
+            break;
+        default:
+            printf(UNKNOWN_FILESYSTEM);
+            return -1;
+            break;
+    }
+    return 0;
+}
+
+int findFile(int fd, char* searchfile){
+    int result = 0;
+        
+    switch(getExtension(fd)){
+        case T_FAT16:
+            result = findFatFile(fd, searchfile);
+            if (result == FILE_NOT_FOUND){
+                printf(FILE_NOT_FOUND_TXT);
+            } else {
+                printf(FILE_FOUND_TXT, result);
+            }
+            break;
+        case T_EXT2:
+            /*if (findFatFile(fd, searchfile, & fileInfo) == FILE_FOUND){
+
+            } else {
+                printf(FILE_NOT_FOUND_TXT, );
+            }
+            */
+            break;
+        default:
+            printf(UNKNOWN_FILESYSTEM);
+            return -1;
+            break;
+    }
+
+    return 0;
+}
+
+int deleteFile(int fd, char* searchfile){
+    switch(getExtension(fd)){
+        case T_FAT16:
+            switch (deleteFatFile(fd, searchfile)) {
+                case FILE_NOT_FOUND:
+                    break;
+                case FILE_DELETED:
+                    break;
+                default:
+                break;
+            }
+
+            /*if (findFatFile(fd, searchfile, & fileInfo) == FILE_FOUND){
+
+            } else {
+                printf(FILE_NOT_FOUND_TXT, );
+            }
+            */
+            break;
+        case T_EXT2:
+            /*if (findFatFile(fd, searchfile, & fileInfo) == FILE_FOUND){
+
+            } else {
+                printf(FILE_NOT_FOUND_TXT, );
+            }
+            */
+            break;
+        default:
+        break;
+    }
+    return 0;
 }

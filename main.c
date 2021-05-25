@@ -5,8 +5,6 @@
 //MODULES
 #include "libraries.h"
 #include "utils.h"
-#include "ext.h"
-#include "fat.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -17,43 +15,53 @@
 int main(int argc, char const *argv[]){
     char* filesystem;
     char* operation;
+    char* searchfile;
     int fd;
 
-
-    //Check correct numher of arguments
-    if (argc <= 2 || argc > 3){
+    // Check correct numher of arguments
+    if (argc <= 2 || argc > 4){
         printf(ERROR_ARGS);
         exit(EXIT_FAILURE);
     }
 
-    //Copu arguments to operation and filesystem
+    // Copy arguments to operation and filesystem
     operation = (char*) malloc (sizeof(char) * (strlen(argv[1]) + 1));
     filesystem = (char*) malloc (sizeof(char) * (strlen(argv[2]) + 1 + strlen(DIRECTORY)));
     strcpy(operation, argv[1]);
     strcpy(filesystem, DIRECTORY);
     strcat(filesystem, argv[2]);
 
-    //Open file
-    if((fd = open(filesystem, O_RDWR))< 0){
-        printf(NO_FILE);
+    // Check arguments are not exceeded in info operation
+    if (strcmp(operation, "/info") == 0 && argc > 3){
+        printf(ERROR_ARGS);
+        exit(EXIT_FAILURE);
+    } else if ((strcmp(operation, "/find") == 0 || strcmp(operation, "/delete") == 0) && argc < 4){
+        printf(ERROR_ARGS);
         exit(EXIT_FAILURE);
     }
 
-    switch(getExtension(fd)){
-        case T_FAT16:
-            readFatInfo(fd);
-            break;
-
-        case T_EXT2:
-            printf(FILESYSTEM, EXT2_TXT);
-            readExtInfo(fd);
-            break;
-
-        default:
-            printf(UNKNOWN_FILESYSTEM);
-            break;
+    // Open file
+    if((fd = open(filesystem, O_RDWR))< 0){
+        printf(ERROR_VOLUME);
+        exit(EXIT_FAILURE);
     }
 
+    // Check operation to perform depending on filesystem
+    if (strcmp(operation, "/info") == 0){
+        readFileInfo(fd);
+    } else if (strcmp(operation, "/find") == 0){
+        searchfile = (char*) malloc (sizeof(char) * (strlen(argv[3]) + 1));
+        strcpy(searchfile, argv[3]);
+        findFile(fd, searchfile);
+
+    } else if (strcmp(operation, "/delete") == 0){
+        searchfile = (char*) malloc (sizeof(char) * (strlen(argv[3]) + 1));
+        strcpy(searchfile, argv[3]);
+        //UNIMPLEMENTED deleteFile(fd, searchfile);
+    } else {
+        printf(OP_UNKNOWN);
+        printf(CHECK_README);
+    }
     close(fd);
 
     //Free dynamic memory
