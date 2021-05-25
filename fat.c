@@ -76,45 +76,76 @@ void printFatInfo(fatData fat){
     return;
 }
 
-int findFatFile (int fd, char * searchfile){
+int findFatInDepth (int fd, char * searchfile, int root_directory, int start_address, fatData fat){
     int found = FILE_NOT_FOUND;
     char filename [FAT_DIRNAME_SIZE + 2], fileinfo [FAT_DIRNAME_SIZE + 1];
     unsigned int filesize;
-
-    // Retrieve fat data
-    fatData fat;
-    fat = getFatInfo(fd);
-
-    // Root directory addres is FatSize * ((Number of sectors per fat * Number of fat) + Reserved sectors)
-    unsigned int root_directory = fat.size * (fat.sectors_reserved + fat.num_fat * fat.sectors_fat);
-    //printf("\nROOT: %d\n", root_directory);
+    unsigned char filetype = FAT_UNKOWN_FILE;
+    unsigned short cluster;
 
     // Loop through directory entries to look for the file
     for (int i = 0; i < fat.max_root_entries; i++){
-        lseek(fd, root_directory + i*FAT_DIRENTRY_SIZE, SEEK_SET);
+        lseek(fd, start_address + i*FAT_DIRENTRY_SIZE, SEEK_SET);
         read(fd, &fileinfo, FAT_DIRNAME_SIZE);
         fileinfo[12] = '\0';
-
         if(fileinfo[0] == 0x00){
             break;
         }
 
         // Need to parse file in order to get rid of whitespace
         parseFat(fileinfo, filename, ' ');
-        //printf("FILE: %s\n", fileinfo);
-        //printf("PARSED: %s\n\n", filename);
 
-        // Check that the file check and the input are named the same
-        if (strcmp(filename, searchfile) == 0) {
-            lseek (fd, root_directory +( i * FAT_DIRENTRY_SIZE) + FAT_DIRFILESIZE_OFFSET , SEEK_SET);
-            read (fd, &filesize, FAT_DIRFILESIZE_SIZE);
+        lseek (fd, root_directory +( i * FAT_DIRENTRY_SIZE), SEEK_SET);
+        lseek (fd, FAT_DIRATTR_OFFSET, SEEK_CUR);
+        read(fd, &filetype, FAT_DIRATTR_SIZE);
 
-            found = filesize;
+        switch(filetype){
+            case FAT_ATTRDIRECTORY:
+                if (strcmp(filename, ".") == 0 && strcmp(filename, "..") == 0){
+                    printf(ERROR_DOT);
+                } else {
+                    lseek (fd, start_address +(i * FAT_DIRENTRY_SIZE) + FAT_DIRFSTCLUSLO_OFFSET, SEEK_SET);
+                    read (fd, &cluster, FAT_DIRFSTCLUSLO_SIZE);
+
+                    int next_start_address = (cluster - FAT_FIRSTCLUSTER) * fat.size * fat.sectors_cluster +
+                                        fat.sectors_reserved * fat.size +
+                                        fat.num_fat * fat.sectors_fat * fat.size +
+                                        fat.max_root_entries * FAT_DIRENTRY_SIZE;
+
+                    found = findFatInDepth(fd, searchfile, root_directory, next_start_address, fat);
+                    return found;
+                    break;
+                }
+            break;
+            case FAT_ATTRARCHIVE:
+                if (strcmp(filename, searchfile) == 0) {
+                    lseek (fd, start_address +( i * FAT_DIRENTRY_SIZE) + FAT_DIRFILESIZE_OFFSET , SEEK_SET);
+                    read (fd, &filesize, FAT_DIRFILESIZE_SIZE);
+                    found = filesize;
+                    break;
+                }
+            break;
+            default:
+                if (strcmp(filename, searchfile) == 0) {
+                    printf(FAT_UNKOWNFILE_TXT);
+                    break;
+                }
             break;
         }
     }
 
     return found;
+}
+
+int findFatFile (int fd, char * searchfile){
+    // Retrieve fat data
+    fatData fat;
+    fat = getFatInfo(fd);
+
+    // Root directory addres is FatSize * ((Number of sectors per fat * Number of fat) + Reserved sectors)
+    unsigned int root_directory = fat.size * (fat.sectors_reserved + fat.num_fat * fat.sectors_fat);
+
+    return findFatInDepth(fd, searchfile, root_directory, root_directory, fat);
 }
 
 int deleteFatFile (int fd, char * searchfile){

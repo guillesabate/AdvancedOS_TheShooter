@@ -31,5 +31,6 @@
 #define UNKNOWN_FILESYSTEM "File system is neither EXT2 nor FAT16\n\n"
 #define FILE_NOT_FOUND_TXT "\nFile not found.\n"
 #define FILE_FOUND_TXT "\nFile found. It occupies %d bytes.\n\n"
-
+#define ERROR_DOT "\nError. Trying to access root or previous directory\n"
+#define FAT_UNKOWNFILE_TXT "\nError. File Type unidentified\n"
 #endif

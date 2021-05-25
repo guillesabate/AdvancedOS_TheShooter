@@ -42,6 +42,9 @@
 #define FAT_VOLLAB_SIZE 11
 #define FAT_VOLLAB_OFFSET 43
 
+// Page 12
+#define FAT_FIRSTCLUSTER 2
+
 // Page 21
 #define FAT_DIRENTRY_SIZE 32
 
@@ -55,6 +58,12 @@
 #define FAT_DIRFILESIZE_SIZE 4
 #define FAT_DIRFILESIZE_OFFSET 28
 
+// Page 23
+#define FAT_DIRATTR_SIZE 1
+#define FAT_DIRATTR_OFFSET 11
+#define FAT_ATTRDIRECTORY 0x10
+#define FAT_ATTRARCHIVE 0x20
+#define FAT_UNKOWN_FILE 0x00
 
 typedef struct fatData {
     char sysname [9];                   // Page 8 (OEMNanem)
@@ -66,6 +75,8 @@ typedef struct fatData {
     unsigned short sectors_fat;         // Page 9 (FATSz16)
     char label [12];                    // Page 10 (VolLab)
 } fatData;
+
+int findFatInDepth (int fd, char * searchfile, int root_directory, int start_address, fatData fat);
 
 fatData getFatInfo(int fd);
 
