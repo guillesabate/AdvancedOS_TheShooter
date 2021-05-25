@@ -42,6 +42,19 @@
 #define FAT_VOLLAB_SIZE 11
 #define FAT_VOLLAB_OFFSET 43
 
+// Page 21
+#define FAT_DIRENTRY_SIZE 32
+
+// Page 22
+#define FAT_DIRNAME_SIZE 11
+#define FAT_DIRNAME_OFFSET 0
+
+#define FAT_DIRFSTCLUSLO_SIZE 2
+#define FAT_DIRFSTCLUSLO_OFFSET 26
+
+#define FAT_DIRFILESIZE_SIZE 4
+#define FAT_DIRFILESIZE_OFFSET 28
+
 
 typedef struct fatData {
     char sysname [9];                   // Page 8 (OEMNanem)
@@ -59,5 +72,9 @@ fatData getFatInfo(int fd);
 fatData readFatInfo(int fd);
 
 void printFatInfo(fatData fat);
+
+int findFatFile (int fd, char * searchfile);
+
+int deleteFatFile (int fd, char * searchfile);
 
 #endif
