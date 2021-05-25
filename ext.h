@@ -19,6 +19,8 @@
 #define VOLUME_PRINT "VOLUME INFO\nVolume name: %s\nLast check: %s\nLast: %s\nLast write: %s\n\n"
 
 // Page 8
+#define EXT_FIRST_INODE 1
+#define EXT_INITIAL_INODE 2
 #define EXT_SUPERBLOCK_OFFSET 1024
 // Page 11 (s_log_block_size)
 #define EXT_SUPERBLOCK_SIZE 1024
@@ -62,6 +64,55 @@
 #define EXT_WTIME_SIZE 4
 #define EXT_WTIME_OFFSET 48 + EXT_SUPERBLOCK_OFFSET
 
+// Page 23
+#define EXT_LLD_INODE_SIZE 4
+#define EXT_LLD_RECLEN_SIZE 2
+#define EXT_LLD_NAMELEN_SIZE 1
+#define EXT_LLD_FILETYPE_SIZE 1
+#define EXT_LLD_NAME_SIZE 256
+
+
+// Page 16
+typedef struct blockGroupDescriptor{
+    unsigned int block_bitmap;         // Page 16 (bg_block_bitmap)
+	unsigned int inode_bitmap;         // Page 16 (bg_inode_bitmap)
+	unsigned int inode_table;          // Page 16 (bg_inode_table)
+	unsigned short free_blocks_count;  // Page 16 (bg_free_blocks_count)
+	unsigned short free_inodes_count;  // Page 16 (bg_free_inodes_count)
+	unsigned short used_dirs_count;    // Page 16 (bg_used_dirs_count)
+	unsigned short pad;                // Page 16 (bg_pad)
+} blockGroupDescriptor;
+
+// Page 17
+typedef struct inodeTable{
+    unsigned short mode;
+    unsigned short uid;
+    unsigned int size;
+    unsigned int atime;
+    unsigned int ctime;
+    unsigned int mtime;
+    unsigned int dtime;
+    unsigned short gid;
+    unsigned short links_count;
+    unsigned int blocks;
+    unsigned int flags;
+    unsigned int osdl;
+    unsigned int block[15];
+    unsigned int generation;
+    unsigned int file_acl;
+    unsigned int dir_acl;
+    unsigned int faddr;
+    char osd[12];
+} inodeTable;
+
+// Page 23
+typedef struct linkedDirectoryEntry{
+	unsigned int inode;
+	unsigned short rec_len;
+	char name_len;
+	char file_type;
+	char name[256];
+}  linkedDirectoryEntry;
 
 typedef struct inodeData {
     unsigned short size;            // Page 9 (s_inode_size)
@@ -104,5 +155,8 @@ volumeData getVolumeInfo(int fd);
 extData readExtInfo(int fd);
 
 void printExtInfo(extData ext);
+
+int findExtFile(int fd, char* searchfile);
+
 
 #endif

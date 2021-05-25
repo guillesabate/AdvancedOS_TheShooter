@@ -53,10 +53,11 @@ int main(int argc, char const *argv[]){
         searchfile = (char*) malloc (sizeof(char) * (strlen(argv[3]) + 1));
         strcpy(searchfile, argv[3]);
         findFile(fd, searchfile);
-
+        free (searchfile);
     } else if (strcmp(operation, "/delete") == 0){
         searchfile = (char*) malloc (sizeof(char) * (strlen(argv[3]) + 1));
         strcpy(searchfile, argv[3]);
+        free (searchfile);
         //UNIMPLEMENTED deleteFile(fd, searchfile);
     } else {
         printf(OP_UNKNOWN);
@@ -66,5 +67,5 @@ int main(int argc, char const *argv[]){
 
     //Free dynamic memory
     free (filesystem);
-    free(operation);
+    free (operation);
 }

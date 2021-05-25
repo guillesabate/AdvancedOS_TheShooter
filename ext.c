@@ -25,6 +25,33 @@ inodeData getInodeInfo (int fd){
     return inode;
 }
 
+inodeTable getInodeTable (int fd, extData ext, int inode){
+    blockGroupDescriptor bgd;
+    unsigned int inode_table_address;
+    inodeTable inode_table;
+
+    // Page 8 for Offset
+    lseek(fd, EXT_SUPERBLOCK_OFFSET + ext.block.size, SEEK_SET);
+    read(fd, &bgd, sizeof(blockGroupDescriptor));
+
+    // Page
+    int group = (inode - EXT_FIRST_INODE) / ext.inode.group;
+    int offset = (inode - EXT_FIRST_INODE) % ext.inode.group;
+    int padding = group * ext.block.groups * ext.block.size;
+
+    //printf("Inode Group: %d, Block Groups: %d\n", ext.inode.group, ext.block.groups);
+
+    inode_table_address = bgd.inode_table * ext.block.size + offset * ext.inode.size + padding;
+    //printf("Table@: %d, InodeTable: %d, BlockSize: %d\n", inode_table_address, bgd.inode_table, ext.block.size);
+    //printf("Group: %d, Offset: %d, Padding: %d\n", group, offset, padding);
+
+    lseek(fd, inode_table_address, SEEK_SET);
+    read(fd, &inode_table, sizeof(inodeTable));
+
+    //printf("INODE:\nSize: %d\nBlocks: %d\n", inode_table.size, inode_table.blocks);
+    return inode_table;
+}
+
 blockData getBlockInfo(int fd){
     blockData block;
 
@@ -72,15 +99,17 @@ volumeData getVolumeInfo(int fd){
     return volume;
 }
 
-extData readExtInfo (int fd){
+extData getExtInfo (int fd){
     extData ext;
-
     ext.inode = getInodeInfo(fd);
     ext.block = getBlockInfo(fd);
     ext.volume = getVolumeInfo(fd);
+    return ext;
+}
 
+extData readExtInfo (int fd){
+    extData ext = getExtInfo (fd);
     printExtInfo(ext);
-
     return ext;
 }
 
@@ -99,4 +128,48 @@ void printExtInfo(extData ext){
     free(tmp3);
 
     return;
+}
+
+int findExtFile(int fd, char* searchfile){
+    unsigned short dir_offset = 0;
+    unsigned int entry;
+    linkedDirectoryEntry dir_entry;
+
+    // Retrieve ext data
+    extData ext;
+    ext = getExtInfo(fd);
+    inodeTable inode, result;
+    inode = getInodeTable(fd, ext, EXT_INITIAL_INODE);
+
+    // Page 19 for max index of i_block array
+    for (unsigned int i = 0; i < inode.blocks/(2<<ext.block.size) && dir_offset < inode.size; i++) {
+        //printf("Checking iterator %d\n", i);
+        if (inode.block[i] == 0) continue;
+        entry = inode.block[i] * ext.block.size;
+
+        for (int j = 0; dir_offset < inode.size; j++) {
+            //printf("Checking block %d\n", j);
+            lseek(fd, entry + dir_offset, SEEK_SET);
+            read(fd, &dir_entry.inode, EXT_LLD_INODE_SIZE);
+            read(fd, &dir_entry.rec_len, EXT_LLD_RECLEN_SIZE);
+            read(fd, &dir_entry.name_len, EXT_LLD_NAMELEN_SIZE);
+
+            dir_offset += dir_entry.rec_len;
+            //printf("dir_offset = %d, inode size = %d\n", dir_offset, inode.size);
+
+            if (dir_offset > inode.size) break;
+
+            read(fd, &dir_entry.file_type, EXT_LLD_FILETYPE_SIZE);
+            read(fd, dir_entry.name, dir_entry.name_len);
+            dir_entry.name[(int)dir_entry.name_len] = '\0';
+            //printf("Directory Entry: %s\n", dir_entry.name);
+
+            if (strcmp(searchfile, dir_entry.name) == 0) {
+                result = getInodeTable(fd, ext, dir_entry.inode);
+                return result.size;
+            }
+        }
+    }
+
+    return FILE_NOT_FOUND;
 }

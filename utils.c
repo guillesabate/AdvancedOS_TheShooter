@@ -79,7 +79,7 @@ int readFileInfo(int fd){
 
 int findFile(int fd, char* searchfile){
     int result = 0;
-        
+
     switch(getExtension(fd)){
         case T_FAT16:
             result = findFatFile(fd, searchfile);
@@ -90,12 +90,12 @@ int findFile(int fd, char* searchfile){
             }
             break;
         case T_EXT2:
-            /*if (findFatFile(fd, searchfile, & fileInfo) == FILE_FOUND){
-
+            result = findExtFile(fd, searchfile);
+            if (result == FILE_NOT_FOUND){
+                printf(FILE_NOT_FOUND_TXT);
             } else {
-                printf(FILE_NOT_FOUND_TXT, );
+                printf(FILE_FOUND_TXT, result);
             }
-            */
             break;
         default:
             printf(UNKNOWN_FILESYSTEM);
