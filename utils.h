@@ -22,4 +22,10 @@ int getExtension (int fylesistemfd);
 
 char* convertDate (time_t time);
 
+int readFileInfo(int fd);
+
+int findFile(int fd, char* searchfile);
+
+int deleteFile(int fd, char* searchfile);
+
 #endif

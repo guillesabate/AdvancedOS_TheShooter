@@ -59,7 +59,6 @@ volumeData getVolumeInfo(int fd){
     lseek(fd, EXT_VOLUMENAME_OFFSET, SEEK_SET);
     read (fd, &volume.volume_name, EXT_VOLUMENAME_SIZE);
     volume.volume_name[16] = '\0';
-    printf("\nname %s\n\n", volume.volume_name);
 
     lseek(fd, EXT_LASTCHECK_OFFSET, SEEK_SET);
     read (fd, &volume.last_check, EXT_LASTCHECK_SIZE);
@@ -90,6 +89,7 @@ void printExtInfo(extData ext){
     char* tmp2 = convertDate(ext.volume.last);
     char* tmp3 = convertDate(ext.volume.last_write);
 
+    printf(FILESYSTEM, EXT2_TXT);
     printf(INODE_PRINT, ext.inode.size, ext.inode.num, ext.inode.first, ext.inode.group, ext.inode.free);
     printf(BLOCK_PRINT, ext.block.size, ext.block.reserved, ext.block.free, ext.block.total, ext.block.first, ext.block.groups, ext.block.frags);
     printf(VOLUME_PRINT, ext.volume.volume_name, tmp1, tmp2, tmp3);
