@@ -93,7 +93,7 @@ int findFile(int fd, char* searchfile){
         break;
     }
     if (result == FILE_NOT_FOUND){
-        printf(FILE_NOT_FOUND_TXT);
+        printf(FILE_NOT_FOUND_ROOT_TXT);
     } else {
         printf(FILE_FOUND_TXT, result);
     }

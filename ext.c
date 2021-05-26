@@ -210,6 +210,107 @@ int findExtFile (int fd, char* searchfile){
 }
 
 int deleteExtFile(int fd, char* searchfile){
-    printf("%s\n", searchfile);
-    return fd * 2;
+    inodeTable inode;
+    unsigned short dir_offset = 0;
+    unsigned int entry;
+    linkedDirectoryEntry dir_entry;
+
+    extData ext;
+    ext = getExtInfo(fd);
+
+    inode = getInodeTable(fd, ext, EXT_INITIAL_INODE);
+    //printf("INODE SIZE: %d\n", inode.size);
+
+    // Page 19 for max index of i_block array
+    for (unsigned int i = 0; i < inode.blocks/(2<<ext.block.size) && dir_offset < inode.size; i++) {
+
+        //printf("Checking iterator %d\n", i);
+        if (inode.block[i] == 0) continue;
+        entry = inode.block[i] * ext.block.size;
+
+        for (int j = 0; dir_offset < inode.size; j++) {
+            //printf("Checking block %d\n", j);
+            int d_off = dir_offset;
+            lseek(fd, entry + dir_offset, SEEK_SET);
+            read(fd, &dir_entry.inode, EXT_LLD_INODE_SIZE);
+            read(fd, &dir_entry.rec_len, EXT_LLD_RECLEN_SIZE);
+            read(fd, &dir_entry.name_len, EXT_LLD_NAMELEN_SIZE);
+
+            dir_offset += dir_entry.rec_len;
+            //printf("dir_offset = %d, inode size = %d\n", dir_offset, inode.size);
+            if (dir_offset > inode.size) break;
+            if (dir_entry.name_len == 0) continue;
+
+            read(fd, &dir_entry.file_type, EXT_LLD_FILETYPE_SIZE);
+            read(fd, dir_entry.name, dir_entry.name_len);
+            dir_entry.name[(int)dir_entry.name_len] = '\0';
+            //printf("Directory Entry: %s of name size %d\n", dir_entry.name, dir_entry.name_len);
+
+            switch(dir_entry.file_type){
+                case EXT_FT_DIR:
+                    if (strcmp (dir_entry.name, "..") == 0 || strcmp (dir_entry.name, ".") == 0){
+                        if (strcmp(searchfile, dir_entry.name) == 0) printf(ERROR_DOT);
+                    } else if (strcmp(searchfile, dir_entry.name) == 0) {
+                        return FILE_IS_NOT_FILE;
+                        break;
+                    }
+                break;
+                case EXT_FT_REG_FILE:
+                    if (strcmp(searchfile, dir_entry.name) == 0) {
+                        inode = getInodeTable(fd, ext, dir_entry.inode);
+                        blockGroupDescriptor bgd;
+                        unsigned short length = 0;
+                        char buff = 0;
+                        int offset = 0;
+
+                        // Get Block Group Descriptor
+                        lseek(fd, EXT_SUPERBLOCK_OFFSET + ext.block.size, SEEK_SET);
+                        read(fd, &bgd, sizeof(blockGroupDescriptor));
+
+                        // Page 16 explanations on bitmap representations, 0 = free and 1 = available
+                        const unsigned int bitmap_configurations [] = {0x00FE, 0X00FD, 0X00FB, 0X00F7, 0X00EF, 0X00DF, 0X00BF, 0X007F};
+
+                        // Set cursor to block bitmap
+                        offset = bgd.block_bitmap * ext.block.size;
+                        lseek(fd, offset + inode.block[i] / EXT_BYTETOBITS, SEEK_SET);
+                        read(fd, &buff, sizeof(char));
+                        buff &= bitmap_configurations[bgd.block_bitmap % EXT_BYTETOBITS];
+                        lseek(fd, offset + (inode.block[j] / EXT_BYTETOBITS), SEEK_SET);
+                        write(fd, &buff, sizeof(char));
+
+                        // Set cursor to inode bitmap
+                        offset = bgd.inode_bitmap + ext.block.size;
+                        lseek(fd, offset + (dir_entry.inode / EXT_BYTETOBITS), SEEK_SET);
+                        buff = 0;
+                        read(fd, &buff, sizeof(char));
+                        buff &= bitmap_configurations[dir_entry.inode % EXT_BYTETOBITS];
+                        lseek(fd, offset + (dir_entry.inode / EXT_BYTETOBITS), SEEK_SET);
+                        write(fd, &buff, sizeof(char));
+
+                        read(fd, &dir_entry.rec_len, EXT_LLD_RECLEN_SIZE);
+                        read(fd, &dir_entry.name_len, EXT_LLD_NAMELEN_SIZE);
+
+                        lseek(fd, entry + d_off, SEEK_SET);
+                        read(fd, &dir_entry.inode, EXT_LLD_INODE_SIZE);
+                        read(fd, &length, EXT_LLD_RECLEN_SIZE);
+                        length += dir_entry.rec_len;
+                        lseek(fd, -EXT_LLD_RECLEN_SIZE, SEEK_CUR);
+                        write(fd, &length, EXT_LLD_RECLEN_SIZE);
+                        buff = 0;
+                        write(fd, &buff, EXT_LLD_NAMELEN_SIZE);
+                        return inode.size;
+                        break;
+                    }
+                break;
+                case EXT_FT_UNKNOWN:
+                    if (strcmp(searchfile, dir_entry.name) == 0) printf(UNKOWNFILE_TXT);
+                break;
+                default:
+                    if (strcmp(searchfile, dir_entry.name) == 0) printf(UNKOWNFILE_TXT);
+                break;
+            }
+
+        }
+    }
+    return FILE_NOT_FOUND;
 }
