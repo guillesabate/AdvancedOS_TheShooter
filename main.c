@@ -57,8 +57,8 @@ int main(int argc, char const *argv[]){
     } else if (strcmp(operation, "/delete") == 0){
         searchfile = (char*) malloc (sizeof(char) * (strlen(argv[3]) + 1));
         strcpy(searchfile, argv[3]);
+        deleteFile(fd, searchfile);
         free (searchfile);
-        //UNIMPLEMENTED deleteFile(fd, searchfile);
     } else {
         printf(OP_UNKNOWN);
         printf(CHECK_README);

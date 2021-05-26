@@ -164,4 +164,6 @@ int findExtFile(int fd, char* searchfile);
 
 int findExtInDepth(int fd, char* searchfile, extData ext, int inode_address);
 
+int deleteExtFile(int fd, char* searchfile);
+
 #endif

@@ -70,71 +70,62 @@ int readFileInfo(int fd){
             readExtInfo(fd);
             break;
         default:
-            printf(UNKNOWN_FILESYSTEM);
-            return -1;
+            printf(UNKNOWN_FILESYSTEM_TXT);
+            return UNKNOWN_FILESYSTEM;
             break;
     }
     return 0;
 }
 
 int findFile(int fd, char* searchfile){
-    int result = 0;
+    int result = FILE_NOT_FOUND;
 
     switch(getExtension(fd)){
         case T_FAT16:
             result = findFatFile(fd, searchfile);
-            if (result == FILE_NOT_FOUND){
-                printf(FILE_NOT_FOUND_TXT);
-            } else {
-                printf(FILE_FOUND_TXT, result);
-            }
-            break;
+        break;
         case T_EXT2:
             result = findExtFile(fd, searchfile);
-            if (result == FILE_NOT_FOUND){
-                printf(FILE_NOT_FOUND_TXT);
-            } else {
-                printf(FILE_FOUND_TXT, result);
-            }
-            break;
+        break;
         default:
-            printf(UNKNOWN_FILESYSTEM);
-            return -1;
-            break;
+            printf(UNKNOWN_FILESYSTEM_TXT);
+            return UNKNOWN_FILESYSTEM;
+        break;
+    }
+    if (result == FILE_NOT_FOUND){
+        printf(FILE_NOT_FOUND_TXT);
+    } else {
+        printf(FILE_FOUND_TXT, result);
     }
 
-    return 0;
+    return result;
 }
 
 int deleteFile(int fd, char* searchfile){
+    int result = FILE_NOT_FOUND;
+    //printf("DELETING %s\n", searchfile);
     switch(getExtension(fd)){
         case T_FAT16:
-            switch (deleteFatFile(fd, searchfile)) {
-                case FILE_NOT_FOUND:
-                    break;
-                case FILE_DELETED:
-                    break;
-                default:
-                break;
-            }
-
-            /*if (findFatFile(fd, searchfile, & fileInfo) == FILE_FOUND){
-
-            } else {
-                printf(FILE_NOT_FOUND_TXT, );
-            }
-            */
-            break;
+            result= deleteFatFile(fd, searchfile);
+        break;
         case T_EXT2:
-            /*if (findFatFile(fd, searchfile, & fileInfo) == FILE_FOUND){
-
-            } else {
-                printf(FILE_NOT_FOUND_TXT, );
-            }
-            */
-            break;
+            result= deleteExtFile(fd, searchfile);
+        break;
         default:
+            printf(UNKNOWN_FILESYSTEM_TXT);
+            return UNKNOWN_FILESYSTEM;
         break;
     }
-    return 0;
+    switch (result) {
+        case FILE_NOT_FOUND:
+            printf(FILE_NOT_FOUND_TXT);
+        break;
+        case FILE_IS_NOT_FILE:
+            printf(FILE_IS_NOT_FILE_TXT);
+        break;
+        default:
+            printf(FILE_DELETED_TXT, searchfile);
+        break;
+    }
+    return result;
 }

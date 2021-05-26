@@ -208,3 +208,8 @@ int findExtFile (int fd, char* searchfile){
 
     return findExtInDepth (fd, searchfile, ext, EXT_INITIAL_INODE);
 }
+
+int deleteExtFile(int fd, char* searchfile){
+    printf("%s\n", searchfile);
+    return fd * 2;
+}
