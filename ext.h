@@ -71,6 +71,10 @@
 #define EXT_LLD_FILETYPE_SIZE 1
 #define EXT_LLD_NAME_SIZE 256
 
+// Page 24
+#define EXT_FT_UNKNOWN 0
+#define EXT_FT_REG_FILE 1
+#define EXT_FT_DIR 2
 
 // Page 16
 typedef struct blockGroupDescriptor{
@@ -158,5 +162,6 @@ void printExtInfo(extData ext);
 
 int findExtFile(int fd, char* searchfile);
 
+int findExtInDepth(int fd, char* searchfile, extData ext, int inode_address);
 
 #endif

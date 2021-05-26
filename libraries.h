@@ -29,8 +29,9 @@
 #define ERROR_ARGS "\nError. Incorrect number of parameters.\n\n"
 #define FILESYSTEM "\n-------- Filesystem Information --------\n\nFilesystem: %s\n\n"
 #define UNKNOWN_FILESYSTEM "File system is neither EXT2 nor FAT16\n\n"
-#define FILE_NOT_FOUND_TXT "\nFile not found.\n"
+#define FILE_NOT_FOUND_TXT "\nFile not found.\n\n"
 #define FILE_FOUND_TXT "\nFile found. It occupies %d bytes.\n\n"
 #define ERROR_DOT "\nError. Trying to access root or previous directory\n"
-#define FAT_UNKOWNFILE_TXT "\nError. File Type unidentified\n"
+#define UNKOWNFILE_TXT "\nError. File Type unidentified\n"
+#define DIRECTORY_FOUND "\nThe file you were looking for is a Directory.\n"
 #endif

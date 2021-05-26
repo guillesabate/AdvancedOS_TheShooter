@@ -130,19 +130,19 @@ void printExtInfo(extData ext){
     return;
 }
 
-int findExtFile(int fd, char* searchfile){
+int findExtInDepth(int fd, char* searchfile, extData ext, int inode_address){
+    int returning = FILE_NOT_FOUND;
+    inodeTable inode, result;
     unsigned short dir_offset = 0;
     unsigned int entry;
     linkedDirectoryEntry dir_entry;
 
-    // Retrieve ext data
-    extData ext;
-    ext = getExtInfo(fd);
-    inodeTable inode, result;
-    inode = getInodeTable(fd, ext, EXT_INITIAL_INODE);
+    inode = getInodeTable(fd, ext, inode_address);
+    //printf("INODE SIZE: %d\n", inode.size);
 
     // Page 19 for max index of i_block array
     for (unsigned int i = 0; i < inode.blocks/(2<<ext.block.size) && dir_offset < inode.size; i++) {
+
         //printf("Checking iterator %d\n", i);
         if (inode.block[i] == 0) continue;
         entry = inode.block[i] * ext.block.size;
@@ -156,20 +156,55 @@ int findExtFile(int fd, char* searchfile){
 
             dir_offset += dir_entry.rec_len;
             //printf("dir_offset = %d, inode size = %d\n", dir_offset, inode.size);
-
             if (dir_offset > inode.size) break;
+            if (dir_entry.name_len == 0) continue;
 
             read(fd, &dir_entry.file_type, EXT_LLD_FILETYPE_SIZE);
             read(fd, dir_entry.name, dir_entry.name_len);
             dir_entry.name[(int)dir_entry.name_len] = '\0';
-            //printf("Directory Entry: %s\n", dir_entry.name);
+            //printf("Directory Entry: %s of name size %d\n", dir_entry.name, dir_entry.name_len);
 
-            if (strcmp(searchfile, dir_entry.name) == 0) {
-                result = getInodeTable(fd, ext, dir_entry.inode);
-                return result.size;
+            switch(dir_entry.file_type){
+                case EXT_FT_DIR:
+                    if (strcmp (dir_entry.name, "..") == 0 || strcmp (dir_entry.name, ".") == 0){
+                        if (strcmp(searchfile, dir_entry.name) == 0) printf(ERROR_DOT);
+                    } else {
+                        if (strcmp(searchfile, dir_entry.name) == 0) {
+                            printf(DIRECTORY_FOUND);
+                            inode = getInodeTable(fd, ext, dir_entry.inode);
+                            return inode.size;
+                        }
+                        else{
+                            returning = findExtInDepth(fd, searchfile, ext, dir_entry.inode);
+                            if (returning != FILE_NOT_FOUND) return returning;
+                        }
+                    }
+                break;
+                case EXT_FT_REG_FILE:
+                    if (strcmp(searchfile, dir_entry.name) == 0) {
+                        result = getInodeTable(fd, ext, dir_entry.inode);
+                        return result.size;
+                        break;
+                    }
+                break;
+                case EXT_FT_UNKNOWN:
+                    if (strcmp(searchfile, dir_entry.name) == 0) printf(UNKOWNFILE_TXT);
+                break;
+                default:
+                    if (strcmp(searchfile, dir_entry.name) == 0) printf(UNKOWNFILE_TXT);
+                break;
             }
+
         }
     }
-
     return FILE_NOT_FOUND;
+}
+
+
+int findExtFile (int fd, char* searchfile){
+    // Retrieve ext data
+    extData ext;
+    ext = getExtInfo(fd);
+
+    return findExtInDepth (fd, searchfile, ext, EXT_INITIAL_INODE);
 }

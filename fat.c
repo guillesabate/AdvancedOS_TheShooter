@@ -101,8 +101,8 @@ int findFatInDepth (int fd, char * searchfile, int root_directory, int start_add
 
         switch(filetype){
             case FAT_ATTRDIRECTORY:
-                if (strcmp(filename, ".") == 0 && strcmp(filename, "..") == 0){
-                    printf(ERROR_DOT);
+                if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0){
+                    if (strcmp(filename, searchfile) == 0) printf(ERROR_DOT);
                 } else {
                     lseek (fd, start_address +(i * FAT_DIRENTRY_SIZE) + FAT_DIRFSTCLUSLO_OFFSET, SEEK_SET);
                     read (fd, &cluster, FAT_DIRFSTCLUSLO_SIZE);
@@ -127,7 +127,7 @@ int findFatInDepth (int fd, char * searchfile, int root_directory, int start_add
             break;
             default:
                 if (strcmp(filename, searchfile) == 0) {
-                    printf(FAT_UNKOWNFILE_TXT);
+                    printf(UNKOWNFILE_TXT);
                     break;
                 }
             break;
